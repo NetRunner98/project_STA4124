@@ -1,0 +1,67 @@
+C2GAM_Panel_Synthetic_Project/
+├── C2GAM-master/               # GitHub 원본 코드 
+│   ├── models/                 # Gs, Gd, Do, Du 포함 (원본 유지)
+│   ├── data/                   # Drep, Dobs, Dunsel (C2GAM Input datas)
+│   └── ...
+│
+├── data/         # 실제 KLIPS, CENSUS 데이터 (처리 및 변환용)
+│   ├── raw/                   # 원본 CSV
+│   │   ├── klips_df.csv
+│   │   ├── census_df.csv
+│
+├── transformer_embedder/      # Panel → Sequence 벡터 생성 모듈
+│   ├── make_selection.py  # S = f(X,T,Y) 주입 (collider 구조 생성)
+│   ├── klips_sequence_builder.py
+│   ├── census_embed_matcher.py
+│   └── transformer_encoder.py
+│
+├── README.md                  
+└── requirements.txt          
+
+
+주어진 KLIPS데이터와 CENSUS 데이터를 C2GAM의 목표에 맞게 설정
+KLIPS : year, p_region, p_age, p_sex, p_married, p_edu, Ind, p_wage, pid
+CENSUS : p_region, p_age, p_sex, p_married, p_edu, Ind
+
+CENSUS에는 p_wage와 pid가 없음 -> 이를 예측하여 KLIPS와 같거나 비슷한 사람으로 매칭시켜주고 싶음
+
+[raw KLIPS/CENSUS CSV]
+    ↓
+(1) klips_sequence_builder.py 
+원본 KLIPS 패널 데이터를 트랜스포머에 넣을 수있도록 전처리
+KLIPS는 pid당 여러 year가 있으므로 pid 하나에 대한 panel 데이터를 구성
+    ↓
+(2) transformer_encoder.py 
+트랜스포머로 패널 데이터 인코딩해 latent vector로 만들기
+KLIPS panel은 고차원 데이터이므로 C2GAM에 넣을 .csv 스타일 input으로 넣으려면 transformer로 panel data를 임베딩해 하나의 latent vector로 만들어야함
+    ↓
+(3) census_embed_matcher.py 
+KLIPS latent vector와 CENSUS 원본 데이터와 비교해 common covariates 매칭
+KLIPS는 CENSUS와 비교했을때, year를 제외한 common covariates 끼리 비교해서, 비슷한거끼리 만들 수 있도록 할 수 있음. 근데 KLIPS latent vector는 직접 cols끼리 매칭할 수 없음. 그래서 cosine similarity로 KLIPS와 CENSUS의 유사성 비교를 통해 common covariates를 매칭시킴 
+(이때 OOM 이슈로 전체 데이터 23만개 중 20%만 랜덤으로 뽑아 샘플링함)
+    ↓
+(4) make_selection.py
+selection value S를 설정하고, KLIPS로 Drep, CENSUS로 Dobs를, 나머지를 Dunsel 로 만들어 저장
+    ↓
+(5) run.py 
+C2GAM에 넣어 학습
+
+
+
+C2GAM에 넣기 위해 준비해야할 데이터 :
+역할	변수	설명
+T	p_edu (고등교육 여부) 				Treatment. 교육의 효과 추정 목적
+Y	p_wage (소득)					결과 변수. KLIPS에서만 존재, Generator2가 생성
+X	p_region, p_age, p_sex, p_married, Ind		common covariates 5개
+S	Collider bias를 유도하는 selection value (KLIPS 내부에서 정의)	S=1만 관측되어 Dobs 구성, 논문 수식 사용
+
+C2GAM 학습
+개인별 임베딩과 CENSUS에는 없는 p_wagd, pid 생성
+그리고 collider bias 학습을 통해 전체 분포를 보정하는 것
+-------------
+- Generator1 (Gs) : CENSUS (X, T) → pid
+- Generator2 (Gd) : (X, T) → Y 생성 (p_wage)
+- Discriminator1 (Do) : 이게 생성한 panel인지 진짜 panel(KLIPS) 인지 판별
+- Discriminator2 (Du) : (X, Y) 쌍 (covariates+Y)만 보고 생성 여부 판단
+- Wasserstein distance 기반 전체 분포 정렬
+
