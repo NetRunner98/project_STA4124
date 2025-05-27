@@ -96,14 +96,6 @@ python C2GAM_training/main.py
 - Collider bias is injected through the S-selection function
 - Only **G_d (income generator)** is actively trained and evaluated
 
----
-
-## Evaluation (Planned)
-- PEHE: Precision in Estimation of Heterogeneous Effect
-- t-SNE: Distributional similarity of observed vs. generated samples
-
----
-
 ## Reference
 - [C2GAM GitHub Repo](https://github.com/ZJUBaohongLi/C2GAM)
 - [Original Paper (ICML 2024)] [A Generative Approach for Treatment Effect Estimation under Collider Bias: From an Out-of-Distribution Perspective](https://proceedings.mlr.press/v235/li24al.html)
