@@ -1,15 +1,17 @@
 
 # C2GAM: Counterfactual Generation for Repeated Cross-Sectional Data
 
+Final Project for STA4124 Generative Model Spring 2025, Yonsei University
+
 This project extends the C2GAM framework to transform Repeated Cross-Sectional (RCS) data into pseudo-panel data, enabling counterfactual outcome generation and collider bias correction using deep generative models.
 
-## 🧠 Project Objective
+## Project Objective
 
 To reconstruct individual-level sequences from repeated cross-sectional datasets (e.g., CENSUS), and infer missing outcomes (e.g., income) by leveraging panel data (e.g., KLIPS). The system uses KLIPS to model realistic income distributions and generates pseudo-individuals and outcomes for CENSUS entries using generative adversarial training.
 
 ---
 
-## 📊 Dataset Overview
+## Dataset Overview
 
 | Dataset   | Type                     | Description                               |
 |-----------|--------------------------|-------------------------------------------|
@@ -21,11 +23,14 @@ To reconstruct individual-level sequences from repeated cross-sectional datasets
 
 ---
 
-## 🔧 Data Pipeline
+## Data Pipeline
+```bash
+python run.py
+```
 
 ### 1. **KLIPS Sequence Construction**
 ```bash
-python transformer_embedder/klips_sequence_builder.py
+python preprocessing/klips_sequence_builder.py
 ```
 - Groups rows by `pid`
 - Creates sequences of length 5
@@ -33,7 +38,7 @@ python transformer_embedder/klips_sequence_builder.py
 
 ### 2. **KLIPS Embedding via Transformer**
 ```bash
-python transformer_embedder/transformer_encoder.py
+python preprocessing/transformer_encoder.py
 ```
 - Applies Transformer to encode each KLIPS sequence
 - Mean-pooling → latent vector
@@ -41,7 +46,7 @@ python transformer_embedder/transformer_encoder.py
 
 ### 3. **CENSUS Matching via Cosine Similarity**
 ```bash
-python transformer_embedder/census_embed_matcher.py
+python preprocessing/census_embed_matcher.py
 ```
 - Samples 1% of CENSUS and KLIPS
 - Matches CENSUS (X) with KLIPS (Z) by cosine similarity
@@ -50,7 +55,7 @@ python transformer_embedder/census_embed_matcher.py
 
 ### 4. **Selection Bias Injection**
 ```bash
-python panel_exp/dataset/make_selection.py
+python selection/make_selection.py
 ```
 - Applies collider structure: `S ~ sigmoid(Y - 3*T + wᵀX + ε)`
 - Splits data into:
@@ -60,7 +65,7 @@ python panel_exp/dataset/make_selection.py
 
 ---
 
-## 🔍 C2GAM Architecture
+## C2GAM Architecture
 
 | Module         | Input          | Output        | Role |
 |----------------|----------------|---------------|------|
@@ -74,21 +79,17 @@ python panel_exp/dataset/make_selection.py
 
 ---
 
-## ⚙️ Model Training
+## Model Training
 
 ```bash
-python C2GAM_master/main.py
+python C2GAM_training/main.py
 ```
 - Loads `D_obs.csv`, `D_rep.csv`, `D_unsel.csv`
 - Trains VAE, GAN, and BNN estimator
 - Evaluates counterfactual predictions via PEHE
 
 
-```
-
----
-
-## 📌 Notes
+## Notes
 
 - `X1` is set as binary treatment: **high education = (`p_edu` ≥ 4)**
 - `Y` (income) is generated from KLIPS representations
@@ -97,20 +98,12 @@ python C2GAM_master/main.py
 
 ---
 
-## 📈 Evaluation (Planned)
+## Evaluation (Planned)
 - PEHE: Precision in Estimation of Heterogeneous Effect
 - t-SNE: Distributional similarity of observed vs. generated samples
 
 ---
 
-## ✨ TODO
-- [ ] Implement pseudo-id Generator (Gₛ)
-- [ ] Integrate sequence-level Discriminator (Do)
-- [ ] Visualize latent space (t-SNE)
-- [ ] Extend beyond 1% sample scale
-
----
-
-## 📢 Citation / Reference
+## Reference
 - [C2GAM GitHub Repo](https://github.com/ZJUBaohongLi/C2GAM)
 - [Original Paper (ICML 2024)] [A Generative Approach for Treatment Effect Estimation under Collider Bias: From an Out-of-Distribution Perspective](https://proceedings.mlr.press/v235/li24al.html)
