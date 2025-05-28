@@ -3,10 +3,10 @@ from sklearn.preprocessing import StandardScaler
 import os
 
 # === 1. 기준 데이터 불러오기 (D_rep)
-rep_df = pd.read_csv("./C2GAM_master/data/D_rep.csv")
+rep_df = pd.read_csv("./C2GAM_training/data/D_rep.csv")
 
 # === 2. 생성된 결과 파일 불러오기
-generated_df = pd.read_csv("./C2GAM_master/data/D_gen_init.csv")
+generated_df = pd.read_csv("./C2GAM_training/data/D_gen_init.csv")
 
 # === 3. 정규화 대상 변수 설정 (X2_1 ~ X2_6 + Y), X2_7은 제외
 scale_cols = [f"X2_{i}" for i in range(1, 7)] + ["Y"]
@@ -39,6 +39,6 @@ if "X1" in generated_df_scaled.columns:
 
 
 # === 9. 저장
-output_path = "./C2GAM_master/data/D_gen.csv"
+output_path = "./C2GAM_training/data/D_gen.csv"
 generated_df_scaled.to_csv(output_path, index=False)
 print(f"복원된 결과 저장 완료: {output_path}")
