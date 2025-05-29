@@ -30,7 +30,7 @@ python run.py
 
 ### 1. **KLIPS Sequence Construction**
 ```bash
-python preprocessing/klips_sequence_builder.py
+python processing/klips_sequence_builder.py
 ```
 - Groups rows by `pid`
 - Creates sequences of length 5
@@ -38,7 +38,7 @@ python preprocessing/klips_sequence_builder.py
 
 ### 2. **KLIPS Embedding via Transformer**
 ```bash
-python preprocessing/transformer_encoder.py
+python processing/transformer_encoder.py
 ```
 - Applies Transformer to encode each KLIPS sequence
 - Mean-pooling → latent vector
@@ -46,7 +46,7 @@ python preprocessing/transformer_encoder.py
 
 ### 3. **CENSUS Matching via Cosine Similarity**
 ```bash
-python preprocessing/census_embed_matcher.py
+python processing/census_embed_matcher.py
 ```
 - Samples 1% of CENSUS and KLIPS
 - Matches CENSUS (X) with KLIPS (Z) by cosine similarity
